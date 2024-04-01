@@ -16,6 +16,7 @@
  */
 package org.apache.rocketmq.dashboard.model;
 
+import org.apache.rocketmq.common.message.MessageClientExt;
 import org.apache.rocketmq.common.message.MessageExt;
 import com.google.common.base.Charsets;
 import org.springframework.beans.BeanUtils;
@@ -35,6 +36,11 @@ public class MessageView {
     private long storeTimestamp;
     private SocketAddress storeHost;
     private String msgId;
+
+    /**
+     * 真实msg id
+     */
+    private String msgOfficeId;
     private long commitLogOffset;
     private int bodyCRC;
     private int reconsumeTimes;
@@ -54,6 +60,12 @@ public class MessageView {
         BeanUtils.copyProperties(messageExt, messageView);
         if (messageExt.getBody() != null) {
             messageView.setMessageBody(new String(messageExt.getBody(), Charsets.UTF_8));
+        }
+        //主要是这里判断下，是否是这个类，是就把原来的msgId拿出来
+        if(messageExt instanceof MessageClientExt){
+            MessageClientExt ext =   (MessageClientExt) messageExt;
+            // messageView.setMsgId(ext.getMsgId()+","+ext.getOffsetMsgId());
+            messageView.setMsgOfficeId(ext.getOffsetMsgId());
         }
         return messageView;
     }
@@ -192,5 +204,13 @@ public class MessageView {
 
     public void setMessageBody(String messageBody) {
         this.messageBody = messageBody;
+    }
+
+    public String getMsgOfficeId() {
+        return msgOfficeId;
+    }
+
+    public void setMsgOfficeId(String msgOfficeId) {
+        this.msgOfficeId = msgOfficeId;
     }
 }
